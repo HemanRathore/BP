@@ -162,6 +162,8 @@ Change it there and it updates on every page at once.
 │       ├── hero.jpg        Home page hero image
 │       ├── facility.jpg    About page facility image
 │       └── products/       Product photography
+├── tools/
+│   └── set-logo.py         Installs / replaces the brand mark at every size
 ├── robots.txt              Search engine instructions
 ├── sitemap.xml             Page list for Google
 └── site.webmanifest        "Add to home screen" settings for phones
@@ -185,7 +187,36 @@ Change it there and it updates on every page at once.
 
 ---
 
-## 7. Browser support & performance
+## 7. The brand mark
+
+The logo is the ornate BP badge supplied by the business, exported at several sizes in
+`assets/img/`.
+
+**To install or replace the logo, run one command with the original artwork file:**
+
+```bash
+python3 tools/set-logo.py path/to/logobp.jpg
+```
+
+That script:
+
+* archives your file **byte-for-byte** at `assets/img/bp-logo-master.jpg` — the artwork is
+  never cropped, recoloured, redrawn or sharpened;
+* produces every size the site needs (512, 256, 192, 48 and 32 px, plus the 180 px iPhone
+  icon) by straight proportional downscaling;
+* keeps the same filenames, so no HTML or CSS has to change;
+* verifies the archived master is identical to your file, and warns you if the source is
+  smaller than 200 px so the larger sizes would look soft.
+
+It needs ImageMagick's `convert` command. Nothing else to configure — refresh the site
+afterwards and the header, footer, browser tab and phone home-screen icons all update.
+
+`data/site.config.js` -> `brand.logo` chooses which file the header and footer load; it
+points at `assets/img/bp-logo-192.png` by default.
+
+---
+
+## 8. Browser support & performance
 
 Tested in Chrome, Safari, Firefox and Edge on desktop, tablet and mobile. Uses `IntersectionObserver`
 for scroll animations, `localStorage` for the enquiry list (with an in-memory fallback if storage
