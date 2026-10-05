@@ -223,11 +223,37 @@ window.BP_CONFIG = {
     websiteEnquiryForm: true,
   },
 
+
   /* ---------------------------------------------------------------------
-     11. FILE / BUILD INFO
+     11. CONTENT PROTECTION
+     ---------------------------------------------------------------------
+     IMPORTANT AND HONEST: because this is a static website, its code is
+     always sent to the visitor's browser and can never be fully hidden.
+     These switches remove the casual, easy routes to copying (right-click,
+     view-source shortcuts, developer tools) and are a DETERRENT only.
+
+     The protection that actually matters is server-side, and is already set
+     up in the _headers / .htaccess / vercel.json files in the project root.
+
+     Set protectClient to false to switch all of the below off at once.
+     --------------------------------------------------------------------- */
+  security: {
+    protectClient: true,          // master switch for everything in this block
+    blockRightClick: true,        // no right-click menu on the site
+    allowRightClickOnForms: true, // ...but keep it on form fields so people can paste
+    allowRightClickOnLinks: true, // ...and on links, so customers can copy a product link
+    blockDevtoolsShortcuts: true, // F12, Ctrl+Shift+I/J/C, Ctrl+U, Ctrl+S
+    noticeOnDevtools: true,       // show a copyright notice if dev tools are opened
+    consoleNotice: true,          // print a copyright line in the browser console
+    noticeText: "\u00A9 BP Enterprises. Website design and source code are protected. " +
+                "For packaging enquiries please call +91 74170 19146.",
+  },
+
+  /* ---------------------------------------------------------------------
+     12. FILE / BUILD INFO
      --------------------------------------------------------------------- */
   build: {
-    version: "1.0.0",
+    version: "1.1.0",
     lastUpdated: "2026-10-06",
   },
 };

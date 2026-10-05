@@ -90,22 +90,12 @@ Set `price: null` on a single product to show **"Price on request"** for that it
 illustration is shown in its place with the words "Photo coming soon", so the layout always
 looks finished. Fix the file name and the photo appears.
 
-Current photos still to be supplied (the site is showing illustrations for these):
+**Photo status:** 20 of the 21 products have a photograph. Only *Food-Grade Box
+Assortment* is deliberately left without one, because it is a mixed range rather than a
+single product — the site shows a clean line illustration for it by design.
 
-| File name | Product |
-|---|---|
-| `partition.jpg` | Corrugated Partitions & Dividers |
-| `corrugated-roll.jpg` | Corrugated Roll |
-| `corrugated-sheet.jpg` | Corrugated Sheets |
-| `kraft-paper.jpg` | Kraft Paper |
-| `duplex-board.jpg` | Duplex Board |
-| `paper-bags.jpg` | Kraft Paper Bags |
-| `poly-bags.jpg` | Poly Bags & Pouches |
-| `stretch-film.jpg` | Stretch Film |
-| `bubble-roll.jpg` | Bubble Roll & Pouches |
-| `bopp-tape.jpg` | BOPP Self-Adhesive Tape |
-| `pallets.jpg` | Wooden Pallets |
-| `wooden.jpg` | Wooden Cases & Crates |
+If a product is ever left with no photo, or a filename is mistyped, the illustration appears
+automatically and nothing breaks.
 
 Drop a file with the right name into `assets/img/products/` and the illustration is replaced
 automatically — no code change needed. Photograph items on a plain white or light surface in
@@ -144,30 +134,54 @@ Change it there and it updates on every page at once.
 ├── about.html              Company profile, timeline, team, clients
 ├── contact.html            Contact details, enquiry form, locations
 ├── 404.html                Page-not-found page
-├── data/
-│   ├── site.config.js      ← EDIT THIS: numbers, addresses, team, toggles
-│   └── products.js         ← EDIT THIS: the product catalogue
-├── assets/
-│   ├── css/styles.css      All styling (design tokens at the top)
-│   ├── js/
-│   │   ├── layout.js       Header, footer and floating UI (shared by all pages)
-│   │   └── app.js          Catalogue, filters, enquiry list, WhatsApp hand-offs
-│   └── img/
-│       ├── bp-logo-512.png Master brand mark (the ornate BP badge)
-│       ├── bp-logo-256.png Header / footer mark
-│       ├── bp-logo-192.png Small mark used in the site header
-│       ├── favicon-32.png  Browser tab icon
-│       ├── favicon-192.png Android home-screen icon
-│       ├── apple-touch-icon.png  iPhone home-screen icon
-│       ├── hero.jpg        Home page hero image
-│       ├── facility.jpg    About page facility image
-│       └── products/       Product photography
+│
+├── data/                   ← EDIT THESE TWO FILES
+│   ├── site.config.js         Numbers, addresses, team, prices on/off, security
+│   └── products.js            The product catalogue
+│
+├── assets/                 What the website actually serves
+│   ├── css/styles.min.css     Built — do not edit by hand
+│   ├── js/app.min.js          Built — do not edit by hand
+│   ├── js/layout.min.js       Built — do not edit by hand
+│   ├── js/protect.min.js      Built — do not edit by hand
+│   └── img/                   Logo, favicons, photographs
+│
+├── src/                    Readable source for the developer. NOT published.
+│   ├── styles.css
+│   ├── app.js
+│   ├── layout.js
+│   └── protect.js
+│
 ├── tools/
-│   └── set-logo.py         Installs / replaces the brand mark at every size
+│   ├── build.mjs           Minifies src/ into assets/
+│   └── set-logo.py         Installs / replaces the brand mark
+│
+├── _headers                Security + caching headers (Netlify, Cloudflare)
+├── _redirects              Blocks src/ and tools/ (Netlify, Cloudflare)
+├── .htaccess               Same, for Apache / cPanel hosting
+├── vercel.json             Same, for Vercel
+├── package.json            Build tooling list
 ├── robots.txt              Search engine instructions
 ├── sitemap.xml             Page list for Google
 └── site.webmanifest        "Add to home screen" settings for phones
 ```
+
+### Why `src/` and `assets/` are separate
+
+`assets/` holds only minified, hard-to-read copies of the code. `src/` holds the readable
+versions with all the explanatory comments. Only `assets/` is published, so a visitor who
+opens developer tools sees compressed code rather than the annotated original.
+
+**If you never change the code, you can ignore `src/` completely.** It matters only when
+someone edits the design, at which point:
+
+```bash
+npm install     # once — needs Node.js
+npm run build   # recompiles src/ into assets/
+```
+
+`data/site.config.js` and `data/products.js` are deliberately **not** minified. Those are the
+two files the business edits by hand, and compressing them would make this guide useless.
 
 ---
 
@@ -216,7 +230,77 @@ points at `assets/img/bp-logo-192.png` by default.
 
 ---
 
-## 8. Browser support & performance
+## 8. Protecting the site's code
+
+**Read this first, because it matters:** this is a static website. Its code is sent to every
+visitor's browser, so it can *never* be hidden completely. Anyone determined enough can read
+it. What we have done is close all the easy routes, which stops casual copying.
+
+### What is switched on
+
+| Protection | Effect |
+|---|---|
+| Minified code | `assets/` holds compressed code with no comments |
+| Sources kept out of the web root | `/src/` is not reachable on the live site |
+| Right-click disabled | No context menu on page content |
+| Developer-tool shortcuts | F12, Ctrl+Shift+I/J/C, Ctrl+U and Ctrl+S are blocked |
+| Image protection | Images cannot be dragged out or saved by long-press |
+| Console notice | A copyright line is printed in the browser console |
+| Dev-tools notice | A dismissible copyright banner if developer tools are opened |
+| Security headers | Anti-clickjacking, no MIME sniffing, referrer limits |
+
+### What is deliberately left working
+
+Copy and paste still work, and so does printing. Customers copy the phone number and address,
+and purchase orders get printed — breaking those costs the business more than the protection
+gains. Right-click is also left enabled on form fields (so people can paste) and on links (so
+they can copy a product link to send to someone).
+
+### Turning it off
+
+`data/site.config.js` → `security`. Set `protectClient: false` to disable all of it at once,
+or switch off any individual item.
+
+### If a shortcut ever blocks something you need
+
+It is all in `src/protect.js`, compiled into `assets/js/protect.min.js`. Edit the source, run
+`npm run build`.
+
+### The part that actually protects you
+
+The server headers in `_headers`, `.htaccess` and `vercel.json` are real security, not a
+deterrent. They stop other websites framing yours, stop browsers guessing file types, and
+limit what the page is allowed to load.
+
+---
+
+## 9. Deploying
+
+Upload the whole folder to your host, keeping the structure intact. Which host you use
+determines which of the config files does the work — you do not need to edit any of them:
+
+| Host | Reads | Notes |
+|---|---|---|
+| cPanel / shared hosting (Apache) | `.htaccess` | Most common in India. Upload and it just works. |
+| Netlify | `_headers`, `_redirects` | Free, gives you a live URL in minutes |
+| Cloudflare Pages | `_headers`, `_redirects` | Free |
+| Vercel | `vercel.json` | Free |
+| GitHub Pages | nothing | **Cannot block `/src/`** — see below |
+
+**On GitHub Pages, publish `dist/` instead of the repository root.** GitHub Pages cannot block
+any path, so `/src/` would be readable. Run:
+
+```bash
+npm run dist
+```
+
+That assembles a `dist/` folder containing only the files that should be public — no `src/`,
+no `tools/`, no build config — and you publish that instead. `dist/` is generated, so it is
+git-ignored and should never be committed.
+
+---
+
+## 10. Browser support & performance
 
 Tested in Chrome, Safari, Firefox and Edge on desktop, tablet and mobile. Uses `IntersectionObserver`
 for scroll animations, `localStorage` for the enquiry list (with an in-memory fallback if storage

@@ -1,0 +1,105 @@
+# ==========================================================================
+# BP ENTERPRISES — APACHE CONFIGURATION
+# For cPanel / shared hosting / any Apache server. Upload this file to the
+# website root next to index.html. If you host on Netlify or Cloudflare
+# Pages, `_headers` does the same job instead.
+#
+# Nothing here needs editing. If the site ever fails to load after upload,
+# the usual cause is the server not allowing one of the directives — comment
+# the line out with a leading # and reload.
+# ==========================================================================
+
+# --------------------------------------------------------------------------
+# 1. Force HTTPS (leave commented until you have an SSL certificate)
+# --------------------------------------------------------------------------
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# --------------------------------------------------------------------------
+# 2. Security headers
+# --------------------------------------------------------------------------
+<IfModule mod_headers.c>
+  # Don't let browsers guess file types
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Refuse to be loaded inside anyone else's frame
+  Header always set X-Frame-Options "DENY"
+
+  # Don't leak the full address to third parties
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # The site needs none of these features
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+
+  # HTTPS only, for a year
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+  # What may be loaded. Google Fonts is the only external source.
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+  # Remove the header that advertises the server software
+  Header unset X-Powered-By
+  Header unset Server
+</IfModule>
+
+# --------------------------------------------------------------------------
+# 3. No directory listings
+#    Without this, a visitor could browse /assets/img/ and download every
+#    photograph in bulk.
+# --------------------------------------------------------------------------
+Options -Indexes
+
+# --------------------------------------------------------------------------
+# 4. Protect the source-control and editor leftovers if any are ever uploaded
+# --------------------------------------------------------------------------
+<FilesMatch "^\.(git|gitignore|gitattributes|env|htaccess~|DS_Store)">
+  Require all denied
+</FilesMatch>
+RedirectMatch 404 /\.git
+RedirectMatch 404 /\.env
+RedirectMatch 404 /package(-lock)?\.json$
+RedirectMatch 404 /node_modules
+
+# The readable source and the build tooling are NOT part of the website.
+# If /src/ were reachable, a visitor could read the full commented original
+# and the minified files would count for nothing.
+RedirectMatch 404 /src($|/)
+RedirectMatch 404 /tools($|/)
+RedirectMatch 404 /README\.md$
+RedirectMatch 404 /logobp\.jpg$
+
+# --------------------------------------------------------------------------
+# 5. Caching
+# --------------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Pages must revalidate so rate changes reach customers immediately
+  ExpiresByType text/html                 "access plus 0 seconds"
+
+  # Code and owner-editable data: short cache
+  ExpiresByType text/css                  "access plus 1 hour"
+  ExpiresByType application/javascript    "access plus 1 hour"
+
+  # Photographs and the brand mark: one week
+  ExpiresByType image/jpeg                "access plus 1 week"
+  ExpiresByType image/png                 "access plus 1 week"
+  ExpiresByType image/svg+xml             "access plus 1 week"
+  ExpiresByType image/webp                "access plus 1 week"
+  ExpiresByType image/x-icon              "access plus 1 week"
+
+  ExpiresByType application/manifest+json "access plus 1 day"
+  ExpiresByType text/xml                  "access plus 1 day"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml application/manifest+json
+</IfModule>
+
+# --------------------------------------------------------------------------
+# 6. Friendly error page
+# --------------------------------------------------------------------------
+ErrorDocument 404 /404.html

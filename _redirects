@@ -1,0 +1,24 @@
+# ==========================================================================
+# BP ENTERPRISES — NETLIFY / CLOUDFLARE PAGES REDIRECTS
+# Keeps the development files out of the published site.
+#
+# The readable source lives in src/ and the build tooling in tools/. Neither
+# belongs on the public website: if src/ were reachable, a visitor could open
+# /src/app.js and read the full commented original, which would defeat the
+# point of shipping minified code.
+#
+# 404 sends the visitor to the real page-not-found screen.
+# (The matching rules for Apache hosting are in .htaccess.)
+# ==========================================================================
+
+/src/*             /404.html   404
+/tools/*           /404.html   404
+/node_modules/*    /404.html   404
+
+/package.json      /404.html   404
+/package-lock.json /404.html   404
+/README.md         /404.html   404
+/.gitignore        /404.html   404
+
+# The uploaded original logo is kept only for reference
+/logobp.jpg        /404.html   404

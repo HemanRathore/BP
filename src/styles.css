@@ -1246,7 +1246,107 @@ strong, b { color: var(--ink); font-weight: 600; }
   html { scroll-behavior: auto; }
 }
 
+/* ------------------------------------------------------------------ 12 ---
+   PERFORMANCE & SMOOTHNESS
+   Everything here exists to make the site feel quick and fluid: faster first
+   paint, no layout jumping as images arrive, instant-feeling navigation and
+   animation that only ever touches transform/opacity (which the GPU can
+   handle without re-running layout).
+   -------------------------------------------------------------------------- */
+
+/* Reserve space for images so nothing on the page jumps when they load. */
+img[data-img] {
+  background-color: var(--paper-2);
+}
+
+/* Photographs fade in rather than snapping in. Applied by app.js once the
+   image has actually decoded, so there is never a half-drawn frame. */
+img[data-img]:not(.is-ready) {
+  opacity: 0;
+}
+img[data-img].is-ready {
+  opacity: 1;
+  transition: opacity .5s var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  img[data-img]:not(.is-ready) { opacity: 1; }
+  img[data-img].is-ready { transition: none; }
+}
+
+/* The page itself eases in, which hides the flash of unstyled layout on a
+   slow connection and makes navigation feel deliberate rather than abrupt. */
+body {
+  opacity: 0;
+  transition: opacity .32s var(--ease-out);
+}
+body.is-ready { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  body { opacity: 1; transition: none; }
+}
+
+/* Hint the compositor on the elements we animate most often, so the browser
+   promotes them to their own layer before the first hover. Used sparingly —
+   over-promoting everything costs more memory than it saves. */
+.product-card,
+.cat-card,
+.btn,
+.fab-wa {
+  will-change: transform;
+}
+
+/* Cards and buttons only ever move on transform, never on box-shadow alone,
+   which keeps hover at a steady frame rate on phones. */
+.product-card:hover,
+.cat-card:hover {
+  transform: translateY(-4px) translateZ(0);
+}
+
+/* When the header hides/reveals on scroll it should not repaint the page. */
+.site-header {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Smooth cross-page transitions where the browser supports them. Chrome and
+   Edge animate; Safari and Firefox simply navigate as before. */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root) { animation-duration: .22s; }
+::view-transition-new(root) { animation-duration: .28s; }
+
+/* A slimmer, quieter scrollbar that matches the brand instead of sitting in
+   default grey against the white layout. */
+@supports (scrollbar-width: thin) {
+  html { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+}
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 99px;
+  border: 3px solid var(--white);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted-2); }
+
+/* Momentum scrolling inside the drawer and modal on iOS. */
+.drawer__body,
+.modal__body,
+.mobile-menu {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Sticky elements should snap rather than creep when the page settles. */
+.hero__frame img,
+.split__media img,
+.cat-card__media img,
+.modal__media img {
+  backface-visibility: hidden;
+}
+
 /* Print */
+
 @media print {
   .site-header, .topbar, .fab-wa, .to-top, .filter-bar, .cta-band, .footer { display: none !important; }
   body { color: #000; }

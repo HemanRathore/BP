@@ -101,9 +101,17 @@
     $$("img[data-img]", root).forEach(function (img) {
       if (img.dataset.bound) return;
       img.dataset.bound = "1";
-      img.addEventListener("error", function () { img.classList.add("is-missing"); }, { once: true });
-      /* If the browser resolved it before the listener was attached */
-      if (img.complete && img.naturalWidth === 0) img.classList.add("is-missing");
+      img.addEventListener("error", function () {
+        img.classList.add("is-missing");
+        img.classList.add("is-ready");
+      }, { once: true });
+      /* Fade the photograph in only once it has decoded, so a slow connection
+         never shows a half-drawn frame. Cached images are already complete. */
+      img.addEventListener("load", function () { img.classList.add("is-ready"); }, { once: true });
+      if (img.complete) {
+        img.classList.add("is-ready");
+        if (img.naturalWidth === 0) img.classList.add("is-missing");
+      }
     });
   }
 
@@ -1116,7 +1124,76 @@
   }
 
   /* =======================================================================
-     15. URL STATE
+     15. SPEED & FLUIDITY
+     ======================================================================= */
+
+  /* Ease the page in rather than letting it flash on a slow connection.
+     Runs on the very next frame so the content is never hidden if something
+     below throws. */
+  function revealPage() {
+    window.requestAnimationFrame(function () {
+      document.body.classList.add("is-ready");
+    });
+  }
+
+  /* Warm the other pages once the visitor has settled and the browser is
+     idle, so tapping "Products" feels instant instead of waiting on a
+     round trip. Cheap: only the HTML is fetched, and only on a good
+     connection. */
+  function prefetchPages() {
+    var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (conn && (conn.saveData || /(^|-)2g/.test(conn.effectiveType || ""))) return;
+    if (window.location.protocol === "file:") return;
+
+    var pages = ["products.html", "about.html", "contact.html"];
+    var current = window.location.pathname.split("/").pop() || "index.html";
+    var done = false;
+
+    function warm() {
+      if (done) return;
+      done = true;
+      pages.forEach(function (href) {
+        if (href === current) return;
+        var link = document.createElement("link");
+        link.rel = "prefetch";
+        link.href = href;
+        link.as = "document";
+        document.head.appendChild(link);
+      });
+    }
+
+    if ("requestIdleCallback" in window) window.requestIdleCallback(warm, { timeout: 3500 });
+    else window.setTimeout(warm, 2500);
+
+    /* If the pointer lands on a nav link before the idle moment, warm at
+       once — that is a strong signal the next click is imminent. */
+    $$(".nav a, .mobile-link, .footer a").forEach(function (a) {
+      a.addEventListener("mouseenter", warm, { once: true });
+      a.addEventListener("touchstart", warm, { once: true, passive: true });
+    });
+  }
+
+  /* Let clicks on same-site links use the browser's view transition, which
+     cross-fades pages instead of flashing white. Browsers without support
+     simply follow the link normally. */
+  function initPageTransitions() {
+    if (!document.startViewTransition) return;
+    document.addEventListener("click", function (e) {
+      if (e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target.closest && e.target.closest("a[href]");
+      if (!a) return;
+      var href = a.getAttribute("href");
+      if (!href || a.target === "_blank" || a.hasAttribute("download")) return;
+      if (/^(https?:|mailto:|tel:|#)/.test(href)) return;
+      if (a.host && a.host !== window.location.host) return;
+      e.preventDefault();
+      document.startViewTransition(function () { window.location.href = href; });
+    });
+  }
+
+  /* =======================================================================
+     16. URL STATE
      ======================================================================= */
   function readUrlState() {
     var params = new URLSearchParams(window.location.search);
@@ -1135,7 +1212,7 @@
   }
 
   /* =======================================================================
-     16. BOOT
+     17. BOOT
      ======================================================================= */
   function boot() {
     loadEnquiry();
@@ -1160,6 +1237,9 @@
     }
 
     syncEnquiryUI();
+    revealPage();
+    prefetchPages();
+    initPageTransitions();
 
     /* deep link: ?p=product-id opens the detail panel */
     var deep = new URLSearchParams(window.location.search).get("p");

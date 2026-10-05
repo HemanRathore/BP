@@ -1,0 +1,65 @@
+# ==========================================================================
+# BP ENTERPRISES — SECURITY & CACHING HEADERS
+# For Netlify, Cloudflare Pages, Render and any host that reads `_headers`.
+# If your host uses Apache/cPanel, .htaccess does the same job instead.
+# ==========================================================================
+
+/*
+  # --- Security -----------------------------------------------------------
+  # Stops browsers guessing a file's type and running something unexpected
+  X-Content-Type-Options: nosniff
+
+  # Refuses to let any other website load us inside a frame (clickjacking)
+  X-Frame-Options: DENY
+
+  # Don't leak the full page address to third parties. The one outbound
+  # connection the site makes is to Google Fonts, and this keeps it minimal.
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # The site needs none of these browser features, so they are switched off
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()
+
+  # Only allow HTTPS for this domain for the next year
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+  # What the page is allowed to load. Google Fonts is the only external
+  # source; 'unsafe-inline' is required for the inline structured-data block
+  # that tells Google about the business.
+  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+
+  # No cross-site scripting or sniffing on inner resources
+  Cross-Origin-Opener-Policy: same-origin
+  X-Permitted-Cross-Domain-Policies: none
+
+# --- HTML: always revalidate ---------------------------------------------
+# Pages must never be served stale from cache, or a rate change would not
+# reach customers. Images and code below are cached hard instead.
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+# --- Fingerprint-free assets: short cache ---------------------------------
+# These filenames do not change when edited (the owner edits them by hand),
+# so they get a short cache rather than a one-year immutable one.
+/assets/js/*
+  Cache-Control: public, max-age=3600
+
+/assets/css/*
+  Cache-Control: public, max-age=3600
+
+# --- Photographs and the brand mark: cache hard ---------------------------
+/assets/img/*
+  Cache-Control: public, max-age=604800
+
+# --- Never let metadata files be indexed or cached oddly ------------------
+/robots.txt
+  Cache-Control: public, max-age=86400
+
+/sitemap.xml
+  Cache-Control: public, max-age=86400
+
+# --- The owner's editable data files: always fresh ------------------------
+/data/*
+  Cache-Control: public, max-age=300
