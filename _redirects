@@ -13,6 +13,9 @@
 
 /src/*             /404.html   404
 /tools/*           /404.html   404
+/lib/*             /404.html   404
+/database/*        /404.html   404
+/api/*             /404.html   404
 /node_modules/*    /404.html   404
 
 /package.json      /404.html   404

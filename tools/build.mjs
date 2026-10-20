@@ -21,8 +21,8 @@
        feel quick on a phone on mobile data.
 
    What is deliberately NOT minified
-     * data/site.config.js and data/products.js stay plain and commented,
-       because those are the two files the business owner edits by hand.
+     * data/site.config.js and data/products.js stay plain and commented as
+       static defaults and as the initial catalogue seed.
        Minifying them would make the handover guide useless.
 
    Usage
@@ -39,6 +39,9 @@ const JS_TARGETS = [
   ["src/app.js", "assets/js/app.min.js"],
   ["src/layout.js", "assets/js/layout.min.js"],
   ["src/protect.js", "assets/js/protect.min.js"],
+  ["src/catalog-runtime.js", "assets/js/catalog-runtime.min.js"],
+  ["src/site-tracker.js", "assets/js/site-tracker.min.js"],
+  ["src/admin.js", "assets/js/admin.min.js"],
 ];
 
 const CSS_TARGETS = [["src/styles.css", "assets/css/styles.min.css"]];
@@ -142,8 +145,7 @@ for (const page of pages) {
    Optional: assemble dist/ — a folder containing ONLY the files that should
    be published.
 
-   This is the bulletproof option. Most hosts can be told to block src/ and
-   tools/ (see _redirects, .htaccess and vercel.json), but GitHub Pages cannot
+   This is the bulletproof option. Most hosts can be told to block src/, tools/, database/ and lib/ (see _redirects, .htaccess and vercel.json), but GitHub Pages cannot
    block anything, so on GitHub Pages you should publish dist/ instead of the
    repository root.
    ------------------------------------------------------------------------- */

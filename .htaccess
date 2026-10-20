@@ -66,6 +66,9 @@ RedirectMatch 404 /node_modules
 # and the minified files would count for nothing.
 RedirectMatch 404 /src($|/)
 RedirectMatch 404 /tools($|/)
+RedirectMatch 404 /lib($|/)
+RedirectMatch 404 /database($|/)
+RedirectMatch 404 /api($|/)
 RedirectMatch 404 /README\.md$
 RedirectMatch 404 /logobp\.jpg$
 

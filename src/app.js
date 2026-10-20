@@ -1249,8 +1249,8 @@
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () { window.setTimeout(boot, 0); });
+    document.addEventListener("DOMContentLoaded", function () { Promise.resolve(window.BP_DATA_READY).then(function () { window.setTimeout(boot, 0); }); });
   } else {
-    window.setTimeout(boot, 0);
+    Promise.resolve(window.BP_DATA_READY).then(function () { window.setTimeout(boot, 0); });
   }
 })();
