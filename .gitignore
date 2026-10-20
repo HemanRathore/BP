@@ -15,3 +15,11 @@ Thumbs.db
 # The original logo file is uploaded to the repo root for reference;
 # the site itself uses the optimised copies in assets/img/
 logobp.jpg
+
+# Private server credentials
+.env
+.env.*
+!.env.example
+
+# Python cache
+__pycache__/

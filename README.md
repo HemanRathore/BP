@@ -4,8 +4,7 @@ A fast, mobile-first product website for **BP Enterprises**, packaging solutions
 Kosi Kalan (Mathura) and Gurugram. White, editorial design. Every order and enquiry button
 hands off to **WhatsApp** with the message already written out — the buyer only has to press send.
 
-No build step, no database, no monthly platform fee. Plain HTML, CSS and JavaScript that can be
-hosted free on GitHub Pages, Netlify, Vercel or any shared hosting with a cPanel file manager.
+The customer-facing catalogue is plain HTML, CSS and JavaScript and still has a static fallback. The optional private admin page uses Vercel serverless functions and PostgreSQL so product and location changes can be saved securely. Static hosting can serve the storefront, but only a host that runs the `api/` functions can provide the admin.
 
 ---
 
@@ -26,12 +25,11 @@ structure exactly as it is.
 
 ---
 
-## 2. Editing the site — the two files that matter
+## 2. Editing the site
 
-You do **not** need to touch any HTML to run this site day to day. Almost everything lives in
-two plain text files inside the `data/` folder.
+Once the private admin backend is configured, use `/admin.html` for day-to-day product and location edits. The files below remain the static catalogue and fallback if the database is not configured. You do **not** need to touch any HTML.
 
-### `data/site.config.js` — phone numbers, addresses, team, toggles
+### `data/site.config.js` — phone numbers, addresses, team, toggles (static fallback)
 
 | What you want to change | Where to look |
 |---|---|
@@ -50,7 +48,7 @@ two plain text files inside the `data/` folder.
 | Say "Price on request" instead of rates | set `catalogue.showPrices` to `false` |
 | Turn the floating WhatsApp button off | `features.floatingWhatsapp` |
 
-### `data/products.js` — every product
+### `data/products.js` — static product catalogue and database seed
 
 Each product is one block between `{` and `},`. To add a product, copy an existing block,
 paste it, and change the values. To remove one, delete its block. **Do not touch anything
@@ -133,6 +131,7 @@ Change it there and it updates on every page at once.
 ├── products.html           Product catalogue (search, filters, sort)
 ├── about.html              Company profile, timeline, team, clients
 ├── contact.html            Contact details, enquiry form, locations
+├── admin.html              Private product, location and analytics dashboard
 ├── 404.html                Page-not-found page
 │
 ├── data/                   ← EDIT THESE TWO FILES
@@ -152,8 +151,12 @@ Change it there and it updates on every page at once.
 │   ├── layout.js
 │   └── protect.js
 │
+├── api/                    Vercel server-side PostgreSQL API (never served to browsers)
+├── lib/                    Private database/session helper used by the API
+├── database/               PostgreSQL schema and private setup instructions
 ├── tools/
 │   ├── build.mjs           Minifies src/ into assets/
+│   ├── generate-admin-totp.mjs  Creates a local authenticator secret
 │   └── set-logo.py         Installs / replaces the brand mark
 │
 ├── _headers                Security + caching headers (Netlify, Cloudflare)
@@ -203,22 +206,21 @@ two files the business edits by hand, and compressing them would make this guide
 
 ## 7. The brand mark
 
-The logo is the ornate BP badge supplied by the business, exported at several sizes in
-`assets/img/`.
+The transparent logo supplied by the business is saved as `assets/img/bp-logo.png`; the small raster derivatives are also in `assets/img/`. The header and footer display it in a circular white-and-gold frame.
 
 **To install or replace the logo, run one command with the original artwork file:**
 
 ```bash
-python3 tools/set-logo.py path/to/logobp.jpg
+python3 tools/set-logo.py path/to/logo.png
 ```
 
 That script:
 
-* archives your file **byte-for-byte** at `assets/img/bp-logo-master.jpg` — the artwork is
-  never cropped, recoloured, redrawn or sharpened;
+* archives your file **byte-for-byte** at `assets/img/bp-logo-master.<ext>` and refreshes
+  the transparent `assets/img/bp-logo.png` used by the header and footer;
 * produces every size the site needs (512, 256, 192, 48 and 32 px, plus the 180 px iPhone
   icon) by straight proportional downscaling;
-* keeps the same filenames, so no HTML or CSS has to change;
+* updates the icon derivatives and keeps the site filenames stable;
 * verifies the archived master is identical to your file, and warns you if the source is
   smaller than 200 px so the larger sizes would look soft.
 
@@ -226,7 +228,7 @@ It needs ImageMagick's `convert` command. Nothing else to configure — refresh 
 afterwards and the header, footer, browser tab and phone home-screen icons all update.
 
 `data/site.config.js` -> `brand.logo` chooses which file the header and footer load; it
-points at `assets/img/bp-logo-192.png` by default.
+points at the transparent `assets/img/bp-logo.png` badge. The navigation/footer frame it in a circular white-and-gold mark.
 
 ---
 
@@ -307,6 +309,21 @@ for scroll animations, `localStorage` for the enquiry list (with an in-memory fa
 is blocked) and progressive enhancement throughout — the product text is in the HTML, so the site
 still reads correctly with JavaScript disabled.
 
-No tracking scripts, no cookies, no third-party analytics and no external dependencies other than
-the Google Fonts stylesheet. To go fully offline-capable, download the two font families into
+No third-party tracking scripts or advertising cookies are used. When the admin backend is configured, a first-party counter records anonymous page paths and timestamps for basic analytics; it does not store raw IP addresses, and Do Not Track is respected. The public storefront uses local scripts and only loads Google Fonts externally. To go fully offline-capable, download the two font families into
 `assets/fonts/` and swap the `<link>` tags for local `@font-face` rules in `styles.css`.
+
+## 11. Private admin (PostgreSQL)
+
+The website now includes `/admin.html` for editing, adding, removing and reordering products; editing the public addresses and Google Maps links; and viewing simple first-party page-view analytics. It is deliberately **not connected or usable until the private database and server environment are configured**.
+
+The API connects directly to PostgreSQL from Vercel server-side functions using `pg`. It does not use the Supabase browser SDK, Supabase Auth, or a Supabase service-role key. The database URL, admin password hash, TOTP secret and IP-hash key are server-only environment variables. The static site falls back to the checked-in catalogue if the database is not configured.
+
+Follow [`database/README.md`](database/README.md) to:
+
+1. rotate the database password that was shared in chat;
+2. run the SQL schema and create a least-privilege app DB role;
+3. set private Vercel environment variables;
+4. enable the authenticator-based second factor; and
+5. configure edge rate limiting.
+
+**Do not commit a real `.env` file or put any secret in HTML/JavaScript.** The DDoS/WAF protections must be provided by the hosting edge; no application code can guarantee protection from every large distributed attack. The admin backend requires a serverless host that supports the `api/` Node functions (Vercel is configured). Static-only hosts will continue to show the public site, but cannot run this admin backend.

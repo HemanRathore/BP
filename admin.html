@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="same-origin">
+<meta name="theme-color" content="#ffffff">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'">
+<title>Admin — BP Enterprises</title>
+<link rel="icon" href="assets/img/favicon-32.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.min.css">
+</head>
+<body class="admin-page" data-page="admin">
+<main class="admin-shell" id="admin-root">
+  <section class="admin-auth" id="admin-auth" aria-labelledby="admin-login-title">
+    <a class="admin-brand" href="index.html"><img src="assets/img/bp-logo-192.png" alt="BP Enterprises"><span>BP Enterprises<small>Private admin</small></span></a>
+    <div class="admin-auth__card">
+      <span class="eyebrow">Authorised access only</span>
+      <h1 id="admin-login-title">Sign in to the website admin</h1>
+      <p class="text-muted">Use your admin email, password and authenticator code.</p>
+      <form id="login-form" autocomplete="on">
+        <label class="admin-field">Email address<input name="email" type="email" autocomplete="username" required maxlength="254"></label>
+        <label class="admin-field">Password<input name="password" type="password" autocomplete="current-password" required maxlength="256"></label>
+        <label class="admin-field">Authenticator code<input name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" required maxlength="6" aria-describedby="otp-help"></label>
+        <small id="otp-help" class="text-muted">6-digit code from your authenticator app.</small>
+        <button class="btn btn--lg admin-submit" type="submit">Sign in securely</button>
+        <p class="admin-message" id="login-message" role="alert" aria-live="polite"></p>
+      </form>
+    </div>
+    <a class="admin-back" href="index.html">← Back to the public website</a>
+  </section>
+
+  <section class="admin-dashboard" id="admin-dashboard" hidden>
+    <header class="admin-topbar">
+      <a class="admin-brand" href="index.html"><img src="assets/img/bp-logo-192.png" alt=""><span>BP Enterprises<small>Website admin</small></span></a>
+      <div class="admin-topbar__right"><span id="admin-user"></span><button class="btn btn--outline btn--sm" type="button" id="logout-button">Sign out</button></div>
+    </header>
+    <div class="admin-content">
+      <div class="admin-heading"><div><span class="eyebrow">Manage your website</span><h1>Admin dashboard</h1></div><a class="btn btn--outline btn--sm" href="index.html" target="_blank" rel="noopener">View website ↗</a></div>
+      <nav class="admin-tabs" role="tablist" aria-label="Admin sections">
+        <button class="admin-tab is-active" type="button" role="tab" aria-selected="true" data-tab="products">Products</button>
+        <button class="admin-tab" type="button" role="tab" aria-selected="false" data-tab="locations">Locations</button>
+        <button class="admin-tab" type="button" role="tab" aria-selected="false" data-tab="analytics">Analytics</button>
+      </nav>
+      <div class="admin-notice" id="admin-notice" role="status" aria-live="polite"></div>
+
+      <section class="admin-panel is-active" id="panel-products" data-panel="products">
+        <div class="admin-section-heading"><div><h2>Product catalogue</h2><p class="text-muted">Add, edit, remove and reorder products. Changes go live after saving.</p></div><button class="btn" type="button" id="add-product">＋ Add product</button></div>
+        <div class="admin-toolbar"><input class="admin-search" id="product-search" type="search" placeholder="Search products…" aria-label="Search products"><span id="product-count" class="text-muted"></span></div>
+        <div class="admin-product-list" id="product-list"></div>
+      </section>
+
+      <section class="admin-panel" id="panel-locations" data-panel="locations" hidden>
+        <div class="admin-section-heading"><div><h2>Addresses &amp; Google Maps</h2><p class="text-muted">Update the public location cards and their Google Maps directions links.</p></div><button class="btn" type="button" id="add-location">＋ Add location</button></div>
+        <form id="locations-form"><div id="location-list" class="admin-location-list"></div><div class="admin-save-row"><span class="text-muted">Use a secure Google Maps share URL.</span><button class="btn" type="submit">Save locations</button></div></form>
+      </section>
+
+      <section class="admin-panel" id="panel-analytics" data-panel="analytics" hidden>
+        <div class="admin-section-heading"><div><h2>Website analytics</h2><p class="text-muted">Anonymous page-view counts from the past 30 days. No visitor profiles or ad tracking.</p></div><button class="btn btn--outline btn--sm" type="button" id="refresh-analytics">Refresh</button></div>
+        <div class="admin-stats" id="analytics-stats"></div>
+        <div class="admin-chart-card"><div class="admin-chart-heading"><h3>Page views</h3><span>Last 30 days</span></div><div id="analytics-chart" class="admin-chart"></div></div>
+        <div class="admin-chart-card"><div class="admin-chart-heading"><h3>Most viewed pages</h3><span>Last 30 days</span></div><div id="top-pages" class="admin-top-pages"></div></div>
+      </section>
+      <footer class="admin-footer">Changes are saved to the private database. Keep your password and authenticator private.</footer>
+    </div>
+  </section>
+</main>
+
+<dialog id="product-dialog" class="admin-dialog">
+  <form id="product-form" method="dialog">
+    <div class="admin-dialog__header"><div><span class="eyebrow">Catalogue</span><h2 id="product-dialog-title">Add product</h2></div><button class="admin-dialog__close" type="button" aria-label="Close" data-close-dialog>×</button></div>
+    <div class="admin-product-form">
+      <label class="admin-field">Product name<input name="name" required maxlength="140"></label>
+      <div class="admin-form-grid"><label class="admin-field">Category<select name="cat" id="product-category" required></select></label><label class="admin-field">Product ID<input name="id" required pattern="[a-z0-9][a-z0-9-]{1,79}" maxlength="80" autocapitalize="off"></label></div>
+      <label class="admin-field">Image path<input name="image" placeholder="assets/img/products/product-photo.jpg" maxlength="240"></label>
+      <label class="admin-field">Short description<input name="short" maxlength="300" required></label>
+      <label class="admin-field">Full description<textarea name="desc" rows="3" maxlength="3000"></textarea></label>
+      <div class="admin-form-grid"><label class="admin-field">Sizes<input name="sizes" maxlength="300"></label><label class="admin-field">Minimum order<input name="moq" maxlength="120"></label></div>
+      <label class="admin-field">Printing<input name="print" maxlength="200"></label>
+      <label class="admin-field">Specifications (JSON)<textarea name="specs" rows="4" spellcheck="false" placeholder='{"Ply":"5 Ply","Paper GSM":"120–180"}'></textarea></label>
+      <label class="admin-check"><input type="checkbox" name="no-price"> Price on request (no displayed rate)</label>
+      <div class="admin-form-grid admin-price-fields"><label class="admin-field">Price from (₹)<input name="priceFrom" type="number" min="0" step="0.01"></label><label class="admin-field">Price to (₹)<input name="priceTo" type="number" min="0" step="0.01"></label></div>
+      <div class="admin-form-grid"><label class="admin-field">Price unit<input name="priceUnit" maxlength="80" placeholder="per box"></label><label class="admin-field">Price basis<input name="priceBasis" maxlength="80" placeholder="ex-godown"></label></div>
+      <label class="admin-field">Badges (comma separated)<input name="badges" maxlength="200" placeholder="Bestseller, Custom size"></label>
+      <label class="admin-check"><input type="checkbox" name="featured"> Feature on home page</label>
+    </div>
+    <p class="admin-message" id="product-form-message" role="alert"></p>
+    <div class="admin-dialog__actions"><button class="btn btn--outline" type="button" data-close-dialog>Cancel</button><button class="btn" type="submit">Save product</button></div>
+  </form>
+</dialog>
+<script src="data/site.config.js"></script>
+<script src="data/products.js"></script>
+<script src="assets/js/admin.min.js"></script>
+</body>
+</html>

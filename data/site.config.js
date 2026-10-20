@@ -23,7 +23,7 @@ window.BP_CONFIG = {
     established: "February 2026",
     formerName: "JMD Enterprises",
     formerSince: "2019",
-    logo: "assets/img/bp-logo-192.png",
+    logo: "assets/img/bp-logo.png",
   },
 
   /* ---------------------------------------------------------------------

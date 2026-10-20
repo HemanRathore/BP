@@ -315,10 +315,11 @@
     if (chromeHost) chromeHost.innerHTML = buildChrome();
   }
 
+  function renderWhenReady() { Promise.resolve(window.BP_DATA_READY).then(render); }
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", render);
+    document.addEventListener("DOMContentLoaded", renderWhenReady);
   } else {
-    render();
+    renderWhenReady();
   }
 
   window.BP_catName = catName;

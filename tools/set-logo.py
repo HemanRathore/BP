@@ -14,6 +14,7 @@ USAGE
 
 WHAT IT WRITES
     assets/img/bp-logo-master.<ext>   exact copy of your file, untouched
+    assets/img/bp-logo.png           web mark, retaining PNG transparency
     assets/img/bp-logo-512.png        master size, also used for link previews
     assets/img/bp-logo-256.png        larger placements
     assets/img/bp-logo-192.png        header and footer mark (shown at 42px)
@@ -110,6 +111,9 @@ def main():
         die("The archived master does not match the source file.")
     print(f"  Master : {master}  (verified byte-identical)")
     print(f"           sha256 {src_bytes[:16]}…")
+
+    # Keep the transparent source image used in the header and footer.
+    run(["convert", src, "-strip", os.path.join(OUT_DIR, "bp-logo.png")])
 
     # ---- 2. derive the web sizes ----------------------------------------
     print("\n  Derived sizes:")
