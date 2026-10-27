@@ -14,13 +14,14 @@ The schema and least-privilege app role have been created in the connected Supab
 
 The schema migration has already created the restricted `bp_web_app` role and granted only the table permissions the app needs. It has **no password yet**, so it cannot authenticate. Set a new unique password for that role using Supabase's database role-management interface. Do not use the `postgres` superuser for the website.
 
-In Vercel, `DATABASE_URL` must use the Supabase **transaction pooler** (normally port `6543`) and the app-role username (typically `bp_web_app.<project-ref>`). The backend enforces TLS with certificate verification. Keep the connection URL private.
+In Vercel, `DATABASE_URL` must use the Supabase **transaction pooler** (normally port `6543`) and the app-role username (typically `bp_web_app.<project-ref>`). The backend verifies TLS against Supabase’s database CA certificate. In the Supabase dashboard, open the project’s **Database → SSL Configuration** area and download the CA certificate. Add its full PEM text (including the BEGIN/END CERTIFICATE lines) to Vercel as `DATABASE_SSL_CA`. The pooler connection URL should not include an `sslmode` parameter, which can override the supplied certificate settings. Keep `DATABASE_URL` private.
 
 ## 3. Configure private environment variables
 
 Add these variables in the Vercel project's Environment Variables settings (for Preview and Production as appropriate). Do not commit a real `.env` file.
 
 - `DATABASE_URL`: the app-role transaction-pooler URL.
+- `DATABASE_SSL_CA`: the PEM CA certificate downloaded from the Supabase Database SSL Configuration page; preserve its newlines in the Vercel value.
 - `ADMIN_EMAIL`: the one allowed admin account email.
 - `ADMIN_PASSWORD_HASH`: bcrypt hash with cost 12 or higher, never the plain password. Generate locally after `npm install`:
   ```sh
@@ -32,7 +33,7 @@ Add these variables in the Vercel project's Environment Variables settings (for 
 - `ADMIN_TOTP_SECRET`: generate a Base32 secret locally with `node tools/generate-admin-totp.mjs`, add that secret manually to an authenticator app, and enter it only in the private environment setting. Do not commit the generated secret or its provisioning URI.
 - `IP_HASH_SECRET`: a new random secret of at least 32 characters. Generate one locally (for example `openssl rand -hex 32`) and keep it private. It is used to hash rate-limit keys; raw IP addresses are not stored.
 
-Redeploy after setting the variables. The admin page is at `/admin.html`.
+Redeploy after setting the variables. The connection code rejects untrusted certificates; do not set `NODE_TLS_REJECT_UNAUTHORIZED=0` or disable certificate validation. The admin page is at `/admin.html`.
 
 ## Security boundaries
 
